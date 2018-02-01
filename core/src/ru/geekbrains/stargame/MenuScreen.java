@@ -5,8 +5,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
 
+import ru.geekbrains.stargame.engine.Background;
 import ru.geekbrains.stargame.engine.Base2DScreen;
+import ru.geekbrains.stargame.engine.Button;
+import ru.geekbrains.stargame.engine.math.Rect;
 
 /**
  * Created by Oranger on 27.01.2018.
@@ -15,8 +20,9 @@ import ru.geekbrains.stargame.engine.Base2DScreen;
 public class MenuScreen extends Base2DScreen {
 
     private SpriteBatch batch;
-    private Texture bkg, img1;
-    private int x, y;
+    private Texture bkg, srt, ext;
+    private Background background;
+    private Button start, exit;
 
     public MenuScreen(Game game) {
         super(game);
@@ -26,9 +32,13 @@ public class MenuScreen extends Base2DScreen {
     public void show() {
         super.show();
         batch = new SpriteBatch();
+        batch.getProjectionMatrix().idt();
         bkg = new Texture("forest.jpg");
-        img1 = new Texture("x-wing.png");
-        x = 0; y = 0;
+        srt = new Texture("play-button-overlay.png");
+        ext = new Texture("turn_off-512.png");
+        background = new Background(new TextureRegion(bkg));
+        start = new Button(new TextureRegion(srt), new Vector2(-0.8f, -0.8f));
+        exit = new Button(new TextureRegion(ext), new Vector2(0.8f, -0.8f));
     }
 
     @Override
@@ -37,23 +47,30 @@ public class MenuScreen extends Base2DScreen {
         Gdx.gl.glClearColor(1, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.begin();
-        batch.setColor(0.5f, 0.5f, 0.5f, 1);
-        batch.draw(bkg, 0, 0);
-        batch.setColor(1, 1, 1, 1);
-        batch.draw(img1, x, y, 92, 92);
+        background.draw(batch);
+        start.draw(batch);
+        exit.draw(batch);
         batch.end();
     }
 
     @Override
     public void dispose() {
-        batch.dispose();
         bkg.dispose();
+        srt.dispose();
+        ext.dispose();
         super.dispose();
     }
 
     @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        x = screenX - 46; y = Gdx.graphics.getHeight() - screenY - 46;
-        return true;
+    protected void resize(Rect worldBounds) {
+        super.resize(worldBounds);
+        background.resize(worldBounds);
+        start.resize(worldBounds);
+        exit.resize(worldBounds);
+    }
+
+    @Override
+    protected void touchUp(Vector2 touch, int pointer) {
+        super.touchUp(touch, pointer);
     }
 }
