@@ -1,14 +1,11 @@
 package ru.geekbrains.stargame.engine;
 
+
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 import ru.geekbrains.stargame.engine.math.Rect;
-
-/**
- * Created by Oranger on 01.02.2018.
- */
 
 public class Sprite extends Rect {
 
@@ -18,24 +15,33 @@ public class Sprite extends Rect {
     protected int frame;
 
     public Sprite(TextureRegion region) {
-        if (region == null) throw new NullPointerException("region is null");
+        if (region == null) {
+            throw new NullPointerException("region is null");
+        }
         regions = new TextureRegion[1];
         regions[0] = region;
     }
 
     public void draw(SpriteBatch batch) {
-        batch.draw(regions[frame], getLeft(), getBottom(), halfWidth, halfHeight, getWidth(), getHeight(), scale, scale, angle);
+        batch.draw(
+                regions[frame], // текущий регион
+                getLeft(), getBottom(), // точка отрисовки
+                halfWidth, halfHeight, // точка вращения
+                getWidth(), getHeight(), // ширина и высота
+                scale, scale, // масштаб по x и y
+                angle // угол вращения
+        );
     }
 
-    public void setWidthProportion(float width) {
+    public void setWithProportion(float width) {
         setWidth(width);
-        float aspect = regions[frame].getRegionWidth() / regions[frame].getRegionHeight();
+        float aspect = regions[frame].getRegionWidth() / (float) regions[frame].getRegionHeight();
         setHeight(width / aspect);
     }
 
     public void setHeightProportion(float height) {
         setHeight(height);
-        float aspect = regions[frame].getRegionWidth() / regions[frame].getRegionHeight();
+        float aspect = regions[frame].getRegionWidth() / (float) regions[frame].getRegionHeight();
         setWidth(height * aspect);
     }
 
@@ -55,6 +61,10 @@ public class Sprite extends Rect {
 
     }
 
+    public void update(float delta) {
+
+    }
+
     public float getAngle() {
         return angle;
     }
@@ -69,9 +79,5 @@ public class Sprite extends Rect {
 
     public void setScale(float scale) {
         this.scale = scale;
-    }
-
-    public void update(float d) {
-
     }
 }
