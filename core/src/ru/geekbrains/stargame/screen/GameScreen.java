@@ -18,6 +18,8 @@ import ru.geekbrains.stargame.engine.math.Rect;
 import ru.geekbrains.stargame.engine.math.Rnd;
 import ru.geekbrains.stargame.explosion.Explosion;
 import ru.geekbrains.stargame.explosion.ExplosionPool;
+import ru.geekbrains.stargame.ship.EnemyPool;
+import ru.geekbrains.stargame.ship.EnemyShip;
 import ru.geekbrains.stargame.ship.MainShip;
 import ru.geekbrains.stargame.star.Star;
 import ru.geekbrains.stargame.star.TrackingStar;
@@ -33,12 +35,13 @@ public class GameScreen extends Base2DScreen {
     private TextureAtlas atlas;
 
     private MainShip mainShip;
+    private EnemyPool enemyPool;
 
     private TrackingStar[] star;
-    private final BulletPool bulletPool = new BulletPool();
+    private BulletPool bulletPool;
     private ExplosionPool explosionPool;
 
-    private Sound soundExplosion;
+    private Sound soundExplosion, soundBullet;
     private Music music;
 
     public GameScreen(Game game) {
@@ -53,13 +56,17 @@ public class GameScreen extends Base2DScreen {
         music.setLooping(true);
         music.play();
         soundExplosion = Gdx.audio.newSound(Gdx.files.internal("sounds/explosion.wav"));
+        soundBullet = Gdx.audio.newSound(Gdx.files.internal("sounds/bullet.wav"));
 
         backgroundTexture = new Texture("textures/bg.png");
         background = new Background(new TextureRegion(backgroundTexture));
 
         atlas = new TextureAtlas("textures/mainAtlas.tpack");
 
+        this.bulletPool = new BulletPool(soundBullet);
+
         mainShip = new MainShip(atlas, bulletPool);
+        enemyPool = new EnemyPool(atlas);
 
         star = new TrackingStar[STAR_COUNT];
         for (int i = 0; i < star.length; i++) {
@@ -77,6 +84,7 @@ public class GameScreen extends Base2DScreen {
     }
 
     public void deleteAllDestroyed() {
+        enemyPool.freeAllDestroyedActiveObjects();
         bulletPool.freeAllDestroyedActiveObjects();
         explosionPool.freeAllDestroyedActiveObjects();
     }
@@ -85,6 +93,7 @@ public class GameScreen extends Base2DScreen {
         for (int i = 0; i < star.length; i++) {
             star[i].update(delta);
         }
+        enemyPool.updateActiveObjects(delta);
         bulletPool.updateActiveObjects(delta);
         explosionPool.updateActiveObjects(delta);
         mainShip.update(delta);
@@ -99,6 +108,7 @@ public class GameScreen extends Base2DScreen {
             star[i].draw(batch);
         }
         mainShip.draw(batch);
+        enemyPool.drawActiveObjects(batch);
         bulletPool.drawActiveObjects(batch);
         explosionPool.drawActiveObjects(batch);
         batch.end();
@@ -112,6 +122,7 @@ public class GameScreen extends Base2DScreen {
             star[i].resize(worldBounds);
         }
         mainShip.resize(worldBounds);
+        enemyPool.resizeAllActiveObjects(worldBounds);
     }
 
     @Override
@@ -121,7 +132,9 @@ public class GameScreen extends Base2DScreen {
         atlas.dispose();
         bulletPool.dispose();
         explosionPool.dispose();
+        enemyPool.dispose();
         soundExplosion.dispose();
+        soundBullet.dispose();
         music.dispose();
     }
 
@@ -142,6 +155,8 @@ public class GameScreen extends Base2DScreen {
         mainShip.touchDown(touch, pointer);
         Explosion explosion = explosionPool.obtain();
         explosion.set(0.1f, touch);
+        EnemyShip enemy = enemyPool.obtain();
+        enemy.set(new Vector2(touch.x, worldBounds.getTop()), new Vector2(0, -0.5f), worldBounds);
     }
 
     @Override

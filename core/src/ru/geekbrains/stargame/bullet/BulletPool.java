@@ -1,16 +1,20 @@
 package ru.geekbrains.stargame.bullet;
 
-import ru.geekbrains.stargame.engine.pool.SpritesPool;
+import com.badlogic.gdx.audio.Sound;
 
-/**
- * Created by Oranger on 11.02.2018.
- */
+import ru.geekbrains.stargame.engine.pool.SpritesPool;
 
 public class BulletPool extends SpritesPool<Bullet> {
 
+    private Sound sound;
+
+    public BulletPool(Sound sound) {
+        this.sound = sound;
+    }
+
     @Override
     protected Bullet newObject() {
-        return new Bullet();
+        return new Bullet(sound);
     }
 
     @Override
