@@ -1,43 +1,70 @@
 package ru.geekbrains.stargame.ship;
 
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 import ru.geekbrains.stargame.bullet.BulletPool;
 import ru.geekbrains.stargame.engine.math.Rect;
+import ru.geekbrains.stargame.explosion.ExplosionPool;
 
 public class EnemyShip extends Ship {
 
-    private static final float SHIP_HEIGHT = 0.15f;
+    private enum State { DESCENT, FIGHT }
 
-    public EnemyShip(TextureAtlas atlas) {
-        super(atlas.findRegion("enemy0"), 1, 2, 2);
-        setHeightProportion(SHIP_HEIGHT);
-        /*this.bulletPool = bulletPool;
-        this.bulletRegion = atlas.findRegion("bulletEnemy");
-        this.bulletHeight = 0.01f;
-        this.bulletV.set(0, 0.5f);
-        this.bulletDamage = 1;
-        this.reloadInterval = 0.5f;*/
+    private MainShip mainShip;
+    private State state;
+
+    private Vector2 descentV = new Vector2(0, -0.15f);
+    private Vector2 v0 = new Vector2();
+
+    public EnemyShip(BulletPool bulletPool, ExplosionPool explosionPool, Rect worldBounds, MainShip mainShip, Sound shootSound) {
+        super(bulletPool, explosionPool, worldBounds, shootSound);
+        this.mainShip = mainShip;
+        this.v.set(v0);
     }
 
-    public void set(Vector2 pos0, Vector2 v0, Rect worldBounds) {
-        this.pos.set(pos0);
-        this.v.set(v0);
-        this.worldBounds = worldBounds;
+    public void set(TextureRegion[] regions, Vector2 v0, TextureRegion bulletRegion, float bulletHeight, float bulletVY, int bulletDamage, float reloadInterval, float height, int hp) {
+        this.regions = regions;
+        this.v0.set(v0);
+        this.bulletRegion = bulletRegion;
+        this.bulletHeight = bulletHeight;
+        bulletV.set(0f, bulletVY);
+        this.bulletDamage = bulletDamage;
+        this.reloadInterval = reloadInterval;
+        this.hp = hp;
+        setHeightProportion(height);
+        v.set(descentV);
+        state = State.DESCENT;
+        reloadTimer = reloadInterval;
     }
 
     @Override
     public void update(float delta) {
+        super.update(delta);
         pos.mulAdd(v, delta);
-        reloadTimer += delta;
-        if (reloadTimer >= reloadInterval) {
-            reloadTimer = 0f;
-            shoot();
-        }
-        if (getTop() < worldBounds.getBottom()) {
-            setDestroyed(true);
+
+
+        switch (state) {
+            case DESCENT:
+                if (getTop() <= worldBounds.getTop()) {
+                    v.set(v0);
+                    state = State.FIGHT;
+                }
+                break;
+            case FIGHT:
+                reloadTimer += delta;
+                if (reloadTimer >= reloadInterval) {
+                    reloadTimer = 0f;
+                    shoot();
+                }
+                if (getBottom() < worldBounds.getBottom()) {
+                    mainShip.damage(bulletDamage);
+                    boom();
+                    setDestroyed(true);
+                }
+                break;
         }
     }
 
@@ -46,8 +73,7 @@ public class EnemyShip extends Ship {
         setTop(worldBounds.getTop());
     }
 
-    @Override
-    protected void shoot() {
-
+    public boolean isBulletCollision(Rect bullet) {
+        return !(bullet.getRight() < getLeft() || bullet.getLeft() > getRight() || bullet.getBottom() > getTop() || bullet.getTop() < pos.y);
     }
 }
