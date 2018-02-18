@@ -26,10 +26,16 @@ public class MainShip extends Ship {
         super(atlas.findRegion("main_ship"), 1, 2, 2, bulletPool, explosionPool, worldBounds, laserSound);
         setHeightProportion(SHIP_HEIGHT);
         this.bulletRegion = atlas.findRegion("bulletMainShip");
+    }
+
+    public void setToNewGame() {
+        pos.x = worldBounds.pos.x;
         this.bulletHeight = 0.01f;
         this.bulletV.set(0, 0.5f);
         this.bulletDamage = 1;
         this.reloadInterval = 0.2f;
+        hp = 100;
+        setDestroyed(false);
     }
 
     @Override
@@ -117,6 +123,10 @@ public class MainShip extends Ship {
             rightPointer = INVALID_POINTER;
             if (leftPointer != INVALID_POINTER) moveLeft(); else stop();
         }
+    }
+
+    public boolean isBulletCollision(Rect bullet) {
+        return !(bullet.getRight() < getLeft() || bullet.getLeft() > getRight() || bullet.getBottom() > pos.y || bullet.getTop() < getBottom());
     }
 
     private void moveRight() {
